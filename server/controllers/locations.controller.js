@@ -33,7 +33,7 @@ class LocationController {
           error: 'Name and code are required'
         });
       }
-      
+    
       const result = await LocationModel.createContinent(continentData);
       
       if (result.success) {
@@ -262,22 +262,48 @@ class LocationController {
     }
   }
 
-  // ==================== STATE CONTROLLERS (Future Implementation) ====================
-  
+  // ==================== STATE CONTROLLERS ====================
+
+  // Get all states
+  static async getStates(req, res) {
+    try {
+      const { countryId } = req.query;
+
+      let result;
+      if (countryId) {
+        result = await LocationModel.getStatesByCountry(countryId);
+      } else {
+        result = await LocationModel.getStates();
+      }
+
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(500).json(result);
+      }
+    } catch (error) {
+      console.error('Get states controller error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  }
+
   // Get states by country
   static async getStatesByCountry(req, res) {
     try {
       const { countryId } = req.params;
-      
+
       if (!countryId) {
         return res.status(400).json({
           success: false,
           error: 'Country ID is required'
         });
       }
-      
+
       const result = await LocationModel.getStatesByCountry(countryId);
-      
+
       if (result.success) {
         res.json(result);
       } else {
@@ -292,22 +318,140 @@ class LocationController {
     }
   }
 
-  // ==================== DISTRICT CONTROLLERS (Future Implementation) ====================
-  
-  // Get districts by state
-  static async getDistrictsByState(req, res) {
+  // Create state
+  static async createState(req, res) {
+    try {
+      const stateData = req.body;
+
+      if (!stateData.country_id || !stateData.name || !stateData.code) {
+        return res.status(400).json({
+          success: false,
+          error: 'Country, name, and code are required'
+        });
+      }
+
+      const result = await LocationModel.createState(stateData);
+
+      if (result.success) {
+        res.status(201).json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      console.error('Create state controller error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  }
+
+  // Update state
+  static async updateState(req, res) {
     try {
       const { stateId } = req.params;
-      
+      const stateData = req.body;
+
       if (!stateId) {
         return res.status(400).json({
           success: false,
           error: 'State ID is required'
         });
       }
-      
+
+      if (!stateData.country_id || !stateData.name || !stateData.code) {
+        return res.status(400).json({
+          success: false,
+          error: 'Country, name, and code are required'
+        });
+      }
+
+      const result = await LocationModel.updateState(stateId, stateData);
+
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      console.error('Update state controller error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  }
+
+  // Delete state
+  static async deleteState(req, res) {
+    try {
+      const { stateId } = req.params;
+
+      if (!stateId) {
+        return res.status(400).json({
+          success: false,
+          error: 'State ID is required'
+        });
+      }
+
+      const result = await LocationModel.deleteState(stateId);
+
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      console.error('Delete state controller error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  }
+
+  // ==================== DISTRICT CONTROLLERS ====================
+
+  // Get all districts
+  static async getDistricts(req, res) {
+    try {
+      const { stateId } = req.query;
+
+      let result;
+      if (stateId) {
+        result = await LocationModel.getDistrictsByState(stateId);
+      } else {
+        result = await LocationModel.getDistricts();
+      }
+
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(500).json(result);
+      }
+    } catch (error) {
+      console.error('Get districts controller error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  }
+
+  // Get districts by state
+  static async getDistrictsByState(req, res) {
+    try {
+      const { stateId } = req.params;
+
+      if (!stateId) {
+        return res.status(400).json({
+          success: false,
+          error: 'State ID is required'
+        });
+      }
+
       const result = await LocationModel.getDistrictsByState(stateId);
-      
+
       if (result.success) {
         res.json(result);
       } else {
@@ -315,6 +459,98 @@ class LocationController {
       }
     } catch (error) {
       console.error('Get districts by state controller error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  }
+
+  // Create district
+  static async createDistrict(req, res) {
+    try {
+      const districtData = req.body;
+
+      if (!districtData.state_id || !districtData.name || !districtData.code) {
+        return res.status(400).json({
+          success: false,
+          error: 'State, name, and code are required'
+        });
+      }
+
+      const result = await LocationModel.createDistrict(districtData);
+
+      if (result.success) {
+        res.status(201).json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      console.error('Create district controller error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  }
+
+  // Update district
+  static async updateDistrict(req, res) {
+    try {
+      const { districtId } = req.params;
+      const districtData = req.body;
+
+      if (!districtId) {
+        return res.status(400).json({
+          success: false,
+          error: 'District ID is required'
+        });
+      }
+
+      if (!districtData.state_id || !districtData.name || !districtData.code) {
+        return res.status(400).json({
+          success: false,
+          error: 'State, name, and code are required'
+        });
+      }
+
+      const result = await LocationModel.updateDistrict(districtId, districtData);
+
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      console.error('Update district controller error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  }
+
+  // Delete district
+  static async deleteDistrict(req, res) {
+    try {
+      const { districtId } = req.params;
+
+      if (!districtId) {
+        return res.status(400).json({
+          success: false,
+          error: 'District ID is required'
+        });
+      }
+
+      const result = await LocationModel.deleteDistrict(districtId);
+
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      console.error('Delete district controller error:', error);
       res.status(500).json({
         success: false,
         error: 'Internal server error'

@@ -239,16 +239,40 @@ class LocationModel {
     }
   }
 
-  // ==================== STATE METHODS (Future Implementation) ====================
-  
+  // ==================== STATE METHODS ====================
+
+  // Get all states
+  static async getStates() {
+    try {
+      const query = `
+        SELECT
+          s.id, s.name, s.code, s.display_order, s.is_active, s.created_at, s.updated_at,
+          c.name as country_name, c.id as country_id,
+          cont.name as continent_name
+        FROM states s
+        LEFT JOIN countries c ON s.country_id = c.id
+        LEFT JOIN continents cont ON c.continent_id = cont.id
+        ORDER BY s.display_order ASC, s.name ASC
+      `;
+      const result = await pool.query(query);
+      return { success: true, data: result.rows };
+    } catch (error) {
+      console.error('Get states error:', error);
+      return { success: false, error: 'Failed to fetch states' };
+    }
+  }
+
   // Get states by country
   static async getStatesByCountry(countryId) {
     try {
       const query = `
-        SELECT id, name, code, display_order, is_active, created_at, updated_at
-        FROM states 
-        WHERE country_id = $1 AND is_active = true
-        ORDER BY display_order ASC, name ASC
+        SELECT
+          s.id, s.name, s.code, s.display_order, s.is_active, s.created_at, s.updated_at,
+          c.name as country_name
+        FROM states s
+        LEFT JOIN countries c ON s.country_id = c.id
+        WHERE s.country_id = $1
+        ORDER BY s.display_order ASC, s.name ASC
       `;
       const result = await pool.query(query, [countryId]);
       return { success: true, data: result.rows };
@@ -258,22 +282,189 @@ class LocationModel {
     }
   }
 
-  // ==================== DISTRICT METHODS (Future Implementation) ====================
-  
+  // Create state
+  static async createState(stateData) {
+    try {
+      const { country_id, name, code, display_order = 0 } = stateData;
+      const query = `
+        INSERT INTO states (country_id, name, code, display_order)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id, country_id, name, code, display_order, is_active, created_at, updated_at
+      `;
+      const result = await pool.query(query, [country_id, name, code, display_order]);
+      return { success: true, data: result.rows[0] };
+    } catch (error) {
+      console.error('Create state error:', error);
+      if (error.code === '23505') {
+        return { success: false, error: 'State name already exists in this country' };
+      }
+      if (error.code === '23503') {
+        return { success: false, error: 'Invalid country selected' };
+      }
+      return { success: false, error: 'Failed to create state' };
+    }
+  }
+
+  // Update state
+  static async updateState(stateId, stateData) {
+    try {
+      const { country_id, name, code, display_order, is_active } = stateData;
+      const query = `
+        UPDATE states
+        SET country_id = $1, name = $2, code = $3, display_order = $4, is_active = $5, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $6
+        RETURNING id, country_id, name, code, display_order, is_active, created_at, updated_at
+      `;
+      const result = await pool.query(query, [country_id, name, code, display_order, is_active, stateId]);
+
+      if (result.rows.length === 0) {
+        return { success: false, error: 'State not found' };
+      }
+
+      return { success: true, data: result.rows[0] };
+    } catch (error) {
+      console.error('Update state error:', error);
+      if (error.code === '23505') {
+        return { success: false, error: 'State name already exists in this country' };
+      }
+      if (error.code === '23503') {
+        return { success: false, error: 'Invalid country selected' };
+      }
+      return { success: false, error: 'Failed to update state' };
+    }
+  }
+
+  // Delete state
+  static async deleteState(stateId) {
+    try {
+      const query = 'DELETE FROM states WHERE id = $1 RETURNING id';
+      const result = await pool.query(query, [stateId]);
+
+      if (result.rows.length === 0) {
+        return { success: false, error: 'State not found' };
+      }
+
+      return { success: true, message: 'State deleted successfully' };
+    } catch (error) {
+      console.error('Delete state error:', error);
+      if (error.code === '23503') {
+        return { success: false, error: 'Cannot delete state. It has associated districts.' };
+      }
+      return { success: false, error: 'Failed to delete state' };
+    }
+  }
+
+  // ==================== DISTRICT METHODS ====================
+
+  // Get all districts
+  static async getDistricts() {
+    try {
+      const query = `
+        SELECT
+          d.id, d.name, d.code, d.display_order, d.is_active, d.created_at, d.updated_at,
+          s.name as state_name, s.id as state_id,
+          c.name as country_name,
+          cont.name as continent_name
+        FROM districts d
+        LEFT JOIN states s ON d.state_id = s.id
+        LEFT JOIN countries c ON s.country_id = c.id
+        LEFT JOIN continents cont ON c.continent_id = cont.id
+        ORDER BY d.display_order ASC, d.name ASC
+      `;
+      const result = await pool.query(query);
+      return { success: true, data: result.rows };
+    } catch (error) {
+      console.error('Get districts error:', error);
+      return { success: false, error: 'Failed to fetch districts' };
+    }
+  }
+
   // Get districts by state
   static async getDistrictsByState(stateId) {
     try {
       const query = `
-        SELECT id, name, code, display_order, is_active, created_at, updated_at
-        FROM districts 
-        WHERE state_id = $1 AND is_active = true
-        ORDER BY display_order ASC, name ASC
+        SELECT
+          d.id, d.name, d.code, d.display_order, d.is_active, d.created_at, d.updated_at,
+          s.name as state_name
+        FROM districts d
+        LEFT JOIN states s ON d.state_id = s.id
+        WHERE d.state_id = $1
+        ORDER BY d.display_order ASC, d.name ASC
       `;
       const result = await pool.query(query, [stateId]);
       return { success: true, data: result.rows };
     } catch (error) {
       console.error('Get districts by state error:', error);
       return { success: false, error: 'Failed to fetch districts' };
+    }
+  }
+
+  // Create district
+  static async createDistrict(districtData) {
+    try {
+      const { state_id, name, code, display_order = 0 } = districtData;
+      const query = `
+        INSERT INTO districts (state_id, name, code, display_order)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id, state_id, name, code, display_order, is_active, created_at, updated_at
+      `;
+      const result = await pool.query(query, [state_id, name, code, display_order]);
+      return { success: true, data: result.rows[0] };
+    } catch (error) {
+      console.error('Create district error:', error);
+      if (error.code === '23505') {
+        return { success: false, error: 'District name already exists in this state' };
+      }
+      if (error.code === '23503') {
+        return { success: false, error: 'Invalid state selected' };
+      }
+      return { success: false, error: 'Failed to create district' };
+    }
+  }
+
+  // Update district
+  static async updateDistrict(districtId, districtData) {
+    try {
+      const { state_id, name, code, display_order, is_active } = districtData;
+      const query = `
+        UPDATE districts
+        SET state_id = $1, name = $2, code = $3, display_order = $4, is_active = $5, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $6
+        RETURNING id, state_id, name, code, display_order, is_active, created_at, updated_at
+      `;
+      const result = await pool.query(query, [state_id, name, code, display_order, is_active, districtId]);
+
+      if (result.rows.length === 0) {
+        return { success: false, error: 'District not found' };
+      }
+
+      return { success: true, data: result.rows[0] };
+    } catch (error) {
+      console.error('Update district error:', error);
+      if (error.code === '23505') {
+        return { success: false, error: 'District name already exists in this state' };
+      }
+      if (error.code === '23503') {
+        return { success: false, error: 'Invalid state selected' };
+      }
+      return { success: false, error: 'Failed to update district' };
+    }
+  }
+
+  // Delete district
+  static async deleteDistrict(districtId) {
+    try {
+      const query = 'DELETE FROM districts WHERE id = $1 RETURNING id';
+      const result = await pool.query(query, [districtId]);
+
+      if (result.rows.length === 0) {
+        return { success: false, error: 'District not found' };
+      }
+
+      return { success: true, message: 'District deleted successfully' };
+    } catch (error) {
+      console.error('Delete district error:', error);
+      return { success: false, error: 'Failed to delete district' };
     }
   }
 }

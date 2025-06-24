@@ -158,3 +158,27 @@
   border-color: #28a745;
   box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
 }
+
+.menu-item {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.menu-item.active {
+  background-color: #007bff;
+  color: white;
+}
+
+.submenu {
+  margin-left: 10px;
+}
+
+.submenu-item {
+  padding: 5px 20px;
+  cursor: pointer;
+}
+
+.submenu-item.active {
+  background-color: #cce5ff;
+  font-weight: bold;
+}
