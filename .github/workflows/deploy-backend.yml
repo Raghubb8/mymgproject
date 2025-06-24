@@ -1,4 +1,4 @@
-name: Deploy Node Backend to EC2
+name: Deploy Backend to EC2
 
 on:
   push:
@@ -19,12 +19,10 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
-      - name: Deploy to EC2 via SSH
+      - name: Deploy via SSH
         run: |
-          ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
-            cd ~/role-based-auth
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+            cd ~/mygroup
             git pull origin main
-            cd server
-            npm install
-            pm2 restart backend || pm2 start server.js --name backend
+            ./push.sh
           EOF
