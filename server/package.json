@@ -1,5 +1,5 @@
 {
-  "name": "role-based-auth-server",
+  "name": "mygroup",
   "version": "1.0.0",
   "description": "Backend API for role-based authentication system",
   "main": "server.js",
