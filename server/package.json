@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
   "name": "mygroup-backend",
+=======
+  "name": "mygroup",
+>>>>>>> 718e46739f3981c2b2eb52998fdd291617b459d9
   "version": "1.0.0",
   "description": "Backend API for role-based authentication system",
   "main": "server.js",
