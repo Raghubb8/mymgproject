@@ -26,7 +26,7 @@ psql -U postgres
 3. Enter your superuser password when prompted
 4. Create the database:
 ```sql
-CREATE DATABASE my_group_db;
+CREATE DATABASE mygroup;
 ```
 5. Connect to the new database:
 ```sql
@@ -56,9 +56,9 @@ Create a `.env` file in the project root with your database credentials:
 ```
 DB_HOST=localhost
 DB_PORT=5432
-DB_NAME=my_group_db
+DB_NAME=mygroupdb
 DB_USER=postgres
-DB_PASSWORD=your_password_here
+DB_PASSWORD=mygroup1234
 ```
 
 ## Default Database Credentials
