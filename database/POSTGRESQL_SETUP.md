@@ -61,6 +61,16 @@ DB_USER=postgres
 DB_PASSWORD=mygroup1234
 ```
 
+```
+DB_HOST=mygroupdb.cvy8400sy1r7.ap-south-1.rds.amazonaws.com 
+DB_PORT=5432
+DB_NAME=mygroupdb
+DB_USER=postgres
+DB_PASSWORD=mygroup1234
+```
+
+
+
 ## Default Database Credentials
 
 - **Host**: localhost
