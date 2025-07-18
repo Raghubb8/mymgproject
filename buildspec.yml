@@ -4,17 +4,17 @@ phases:
   install:
     runtime-versions:
       nodejs: 18
+  pre_build:
     commands:
       - echo Installing dependencies...
-      - npm ci --legacy-peer-deps
-
+      - npm ci
   build:
     commands:
-      - echo Building the React app...
-      - npm run build
-
+      - echo Build phase complete
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - zip -r mygroupapp.zip .
 artifacts:
   files:
-    - '**/*'
-  base-directory: dist
-  discard-paths: no
+    - mygroupapp.zip
